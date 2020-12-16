@@ -6,46 +6,34 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Card, Button, Text, Avatar, Input } from "react-native-elements";
-import CommentCard from "./../components/CommentCard";
+import CommentCard from "../components/CommentCard";
 import HeaderHome from "../components/HeaderHome";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { AuthContext } from "../providers/AuthProvider";
-// import * as firebase from "firebase";
-// import "firebase/firestore";
 import dayjs from "dayjs";
+import { getDataJSON, storeDataJSON } from "../functions/AsyncStorageFunctions";
 
-const PostScreen = (props) => {
+const CommentScreen = (props) => {
   console.log(props);
-  const [posts, setPosts] = useState([]);
+  const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState("");
 
-  const loadPosts = async () => {
-    setLoading(true);
-    // firebase
-    //   .firestore()
-    //   .collection("posts")
-    //   .orderBy("created_at", "desc")
-    //   .onSnapshot((querySnapshot) => {
-    //     let temp_posts = [];
-    //     querySnapshot.forEach((doc) => {
-    //       temp_posts.push({
-    //         data: doc.data(),
-    //       });
-    //     });
-    //     setPosts(temp_posts);
-    //     setLoading(false);
-    //   })
-    //   .catch((error) => {
-    //     setLoading(false);
-    //     alert(error);
-    //   });
-  };
+const loadComments = async () => {
+    setLoading(true)
+    let comments = await getDataJSON('comments')
+    
+    if (comments) {
+      setComments(comments.reverse())
+    }
+        setLoading(false)
+  }
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    loadComments()
+  }, [])
 
+console.log(props)
   return (
     <AuthContext.Consumer>
       {(auth) => (
@@ -68,8 +56,7 @@ const PostScreen = (props) => {
           activeOpacity={1}
         />
             <Text h4Style={{ padding: 10 }} h4>
-              Tasnim
-          {props.author}
+           {props.route.params.author} 
         </Text>
       </View>
       <Text
@@ -85,33 +72,64 @@ const PostScreen = (props) => {
           paddingVertical: 10,
         }}
           >
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s
           
-        {/* {props.body} */}
+         {props.route.params.body}
       </Text>
       <Card.Divider />
           <Text>{` 10 Likes, 1 Comments`}</Text>
           <Card.Divider />
            <Card>
         <Input
-          placeholder='Write Something!'
+          placeholder='Write a comment!'
           leftIcon={<Entypo name='pencil' size={24} color='black' />}
-          // onChangeText={currentInput => {
-          //   storeData('comment', currentInput)
-          // }}
+          onChangeText={currentInput => {
+            setInput(currentInput)
+          }}
         />
-        <Button title='Comment' />
+        <Button
+              title='Comment'
+              type='outline'
+              onPress={async () => {
+                setLoading(true)
+                let comments = await getDataJSON('comments')
+                if (comments) {
+                  storeDataJSON('comments', [
+                    ...comments,
+                    {
+                      userId: auth.CurrentUser.uid,
+                      body: input,
+                      author: auth.CurrentUser.Name,
+                      created_at: new Date().toISOString(),
+                    },
+                  ])
+                  comments = await getDataJSON('comments')
+                  setComments(comments.reverse())
+                } else {
+                  storeDataJSON('comments', [
+                    {
+                      userId: auth.CurrentUser.uid,
+                      body: input,
+                      author: auth.CurrentUser.Name,
+                      created_at: new Date().toISOString(),
+                    },
+                  ])
+                   comments = await getDataJSON('comments')
+                   setComments(comments.reverse())
+                }
+                setLoading(false)
+              }}
+            />
           </Card>
                     <ActivityIndicator size="large" color="red" animating={loading} />
 
 
            <FlatList
-          data={posts}
+          data={comments}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => {
             return (
               <CommentCard
-                name={item.userHandle}
+                name={item.author}
                 date={item.createdAt}
                 body={item.body}
               />
@@ -135,4 +153,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostScreen;
+export default CommentScreen;

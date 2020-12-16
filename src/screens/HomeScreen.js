@@ -11,7 +11,7 @@ import { getDataJSON, storeDataJSON } from '../functions/AsyncStorageFunctions'
 const HomeScreen = props => {
   const netinfo = useNetInfo()
   if (netinfo.type != 'unknown' && !netinfo.isInternetReachable) {
-    alert('No Internet!')
+    // alert('No Internet!')
   }
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(false)
@@ -20,8 +20,10 @@ const HomeScreen = props => {
   const loadPosts = async () => {
     setLoading(true)
     let posts = await getDataJSON('posts')
-    setPosts(posts)
-    setLoading(false)
+    if (posts) {
+      setPosts(posts.reverse())
+    }
+        setLoading(false)
   }
 
   useEffect(() => {
@@ -64,7 +66,7 @@ const HomeScreen = props => {
                     },
                   ])
                   posts = await getDataJSON('posts')
-                  setPosts(posts)
+                  setPosts(posts.reverse())
                 } else {
                   storeDataJSON('posts', [
                     {
@@ -72,12 +74,10 @@ const HomeScreen = props => {
                       body: input,
                       author: auth.CurrentUser.Name,
                       created_at: new Date().toISOString(),
-                      likes: [],
-                      comments: [],
                     },
                   ])
                    posts = await getDataJSON('posts')
-                   setPosts(posts)
+                   setPosts(posts.reverse())
                 }
                 setLoading(false)
               }}
@@ -88,9 +88,9 @@ const HomeScreen = props => {
           <FlatList
             data={posts}
             renderItem={({ item }) => {
-              return (
+              return(
                 <PostCard
-                  author={item.name}
+                  author={item.author}
                   date={item.created_at}
                   body={item.body}
                   navigation={props.navigation}

@@ -20,10 +20,12 @@ import { AuthContext, AuthProvider } from "./src/providers/AuthProvider";
 
 function App() {
   return (
+
     <AuthProvider>
       <AuthContext.Consumer>
         {(auth) => (
           <NavigationContainer>
+            {/* <AppDrawerScreen /> */}
             {auth.IsLoggedIn ? <AppDrawerScreen /> : <AuthStackScreen />}
           </NavigationContainer>
         )}

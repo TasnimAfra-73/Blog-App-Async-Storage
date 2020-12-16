@@ -1,7 +1,7 @@
 import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 import HomeScreen from '../screens/HomeScreen'
-import PostScreen from '../screens/PostScreen'
+import CommentScreen from '../screens/CommentScreen'
 
 const HomeStack = createStackNavigator()
 
@@ -14,8 +14,8 @@ const HomeStackScreen = () => {
         options={{ headerShown: false }}
       />
       <HomeStack.Screen
-        name='PostScreen'
-        component={PostScreen}
+        name='CommentScreen'
+        component={CommentScreen}
         options={{ headerShown: false }}
       />
     </HomeStack.Navigator>

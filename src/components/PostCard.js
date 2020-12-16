@@ -45,7 +45,7 @@ const PostCard = (props) => {
           title="  Like (0)"
           icon={<AntDesign name="like2" size={24} color="dodgerblue" />}
         />
-        <Button type="solid" title="Comment (0)" onPress={()=>(props.navigation.navigate('PostScreen',{
+        <Button type="solid" title="Comment (0)" onPress={()=>(props.navigation.navigate('CommentScreen',{
               author:props.author,
               date:props.date,
               body:props.body,
