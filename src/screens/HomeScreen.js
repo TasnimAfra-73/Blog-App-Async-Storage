@@ -1,127 +1,117 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  FlatList,
-  ActivityIndicator,
-} from "react-native";
-import { Card, Button, Text, Avatar, Input } from "react-native-elements";
-import PostCard from "./../components/PostCard";
-import HeaderHome from "../components/HeaderHome";
-import { AntDesign, Entypo } from "@expo/vector-icons";
-import { AuthContext } from "../providers/AuthProvider";
-import { useNetInfo } from "@react-native-community/netinfo";
-// import * as firebase from "firebase";
-// import "firebase/firestore";
+import React, { useState, useEffect } from 'react'
+import { View, StyleSheet, FlatList, ActivityIndicator } from 'react-native'
+import { Card, Button, Text, Avatar, Input } from 'react-native-elements'
+import PostCard from './../components/PostCard'
+import HeaderHome from '../components/HeaderHome'
+import { AntDesign, Entypo } from '@expo/vector-icons'
+import { AuthContext } from '../providers/AuthProvider'
+import { useNetInfo } from '@react-native-community/netinfo'
+import { getDataJSON, storeDataJSON } from '../functions/AsyncStorageFunctions'
 
-const HomeScreen = (props) => {
-  const netinfo = useNetInfo();
-  if (netinfo.type != "unknown" && !netinfo.isInternetReachable) {
-    alert("No Internet!");
+const HomeScreen = props => {
+  const netinfo = useNetInfo()
+  if (netinfo.type != 'unknown' && !netinfo.isInternetReachable) {
+    alert('No Internet!')
   }
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [input, setInput] = useState("");
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [input, setInput] = useState('')
 
   const loadPosts = async () => {
-    // setLoading(true);
-    // firebase
-    //   .firestore()
-    //   .collection("posts")
-    //   .orderBy("created_at", "desc")
-    //   .onSnapshot((querySnapshot) => {
-    //     let temp_posts = [];
-    //     querySnapshot.forEach((doc) => {
-    //       temp_posts.push({
-    //         data: doc.data(),
-    //       });
-    //     });
-    //     setPosts(temp_posts);
-    //     setLoading(false);
-    //   })
-    //   .catch((error) => {
-    //     setLoading(false);
-    //     alert(error);
-    //   });
-  };
+    setLoading(true)
+    let posts = await getDataJSON('posts')
+    setPosts(posts)
+    setLoading(false)
+  }
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    loadPosts()
+  }, [])
 
   return (
     <AuthContext.Consumer>
-      {(auth) => (
+      {auth => (
         <View style={styles.viewStyle}>
           <HeaderHome
             DrawerFunction={() => {
-              props.navigation.toggleDrawer();
+              props.navigation.toggleDrawer()
             }}
           />
           <Card>
             <Input
               placeholder="What's On Your Mind?"
-              leftIcon={<Entypo name="pencil" size={24} color="black" />}
-              onChangeText={(currentText) => {
-                setInput(currentText);
+              leftIcon={<Entypo name='pencil' size={24} color='black' />}
+              onChangeText={currentText => {
+                setInput(currentText)
               }}
             />
             <Button
-              title="Post"
-              type="outline"
-              onPress={function () {
-                setLoading(true);
-                // firebase
-                //   .firestore()
-                //   .collection("posts")
-                //   .add({
-                //     userId: auth.CurrentUser.uid,
-                //     body: input,
-                //     author: auth.CurrentUser.displayName,
-                //     created_at: new Date().toISOString(),
-                //     likes: [],
-                //     comments: [],
-                //   })
-                //   .then(() => {
-                //     setLoading(false);
-                //     alert("Post created Successfully!");
-                //   })
-                //   .catch((error) => {
-                //     setLoading(false);
-                //     alert(error);
-                //   });
+              title='Post'
+              type='outline'
+              onPress={async () => {
+                setLoading(true)
+                let posts = await getDataJSON('posts')
+                if (posts) {
+                  storeDataJSON('posts', [
+                    ...posts,
+                    {
+                      userId: auth.CurrentUser.uid,
+                      body: input,
+                      author: auth.CurrentUser.Name,
+                      created_at: new Date().toISOString(),
+                      likes: [],
+                      comments: [],
+                    },
+                  ])
+                  posts = await getDataJSON('posts')
+                  setPosts(posts)
+                } else {
+                  storeDataJSON('posts', [
+                    {
+                      userId: auth.CurrentUser.uid,
+                      body: input,
+                      author: auth.CurrentUser.Name,
+                      created_at: new Date().toISOString(),
+                      likes: [],
+                      comments: [],
+                    },
+                  ])
+                   posts = await getDataJSON('posts')
+                   setPosts(posts)
+                }
+                setLoading(false)
               }}
             />
           </Card>
-          <ActivityIndicator size="large" color="red" animating={loading} />
+          <ActivityIndicator size='large' color='red' animating={loading} />
 
           <FlatList
             data={posts}
             renderItem={({ item }) => {
               return (
                 <PostCard
-                  author={item.data.author}
-                  date={item.data.created_at}
-                  body={item.data.body}
+                  author={item.name}
+                  date={item.created_at}
+                  body={item.body}
                   navigation={props.navigation}
                 />
-              );
+              )
             }}
           />
         </View>
       )}
     </AuthContext.Consumer>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   textStyle: {
     fontSize: 30,
-    color: "blue",
+    color: 'blue',
   },
   viewStyle: {
     flex: 1,
   },
-});
+})
 
-export default HomeScreen;
+export default HomeScreen
